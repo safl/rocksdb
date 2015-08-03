@@ -1,4 +1,4 @@
-//  Copyright (c) 2011-present, Facebook, Inc.  All rights reserved.
+//  Copyright (c) 2013, Facebook, Inc.  All rights reserved.
 //  This source code is licensed under the BSD-style license found in the
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
@@ -7,20 +7,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
-#ifdef ROCKSDB_PLATFORM_POSIX
+#ifdef ROCKSDB_PLATFORM_NVM
 
 #include "port/port.h"
 
 #include <assert.h>
-#if defined(__i386__) || defined(__x86_64__)
-#include <cpuid.h>
-#endif
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <unistd.h>
 #include <cstdlib>
 #include "util/logging.h"
@@ -37,22 +33,20 @@ static int PthreadCall(const char* label, int result) {
 }
 
 Mutex::Mutex(bool adaptive) {
-#ifdef ROCKSDB_PTHREAD_ADAPTIVE_MUTEX
+#ifdef OS_LINUX
   if (!adaptive) {
     PthreadCall("init mutex", pthread_mutex_init(&mu_, nullptr));
   } else {
     pthread_mutexattr_t mutex_attr;
     PthreadCall("init mutex attr", pthread_mutexattr_init(&mutex_attr));
-    PthreadCall("set mutex attr",
-                pthread_mutexattr_settype(&mutex_attr,
-                                          PTHREAD_MUTEX_ADAPTIVE_NP));
+    PthreadCall("set mutex attr", pthread_mutexattr_settype(&mutex_attr,
+                                                PTHREAD_MUTEX_ADAPTIVE_NP));
     PthreadCall("init mutex", pthread_mutex_init(&mu_, &mutex_attr));
-    PthreadCall("destroy mutex attr",
-                pthread_mutexattr_destroy(&mutex_attr));
+    PthreadCall("destroy mutex attr", pthread_mutexattr_destroy(&mutex_attr));
   }
-#else
+#else // ignore adaptive for non-linux platform
   PthreadCall("init mutex", pthread_mutex_init(&mu_, nullptr));
-#endif // ROCKSDB_PTHREAD_ADAPTIVE_MUTEX
+#endif // OS_LINUX
 }
 
 Mutex::~Mutex() { PthreadCall("destroy mutex", pthread_mutex_destroy(&mu_)); }
@@ -77,9 +71,8 @@ void Mutex::AssertHeld() {
 #endif
 }
 
-CondVar::CondVar(Mutex* mu)
-    : mu_(mu) {
-    PthreadCall("init cv", pthread_cond_init(&cv_, nullptr));
+CondVar::CondVar(Mutex* mu) : mu_(mu) {
+  PthreadCall("init cv", pthread_cond_init(&cv_, nullptr));
 }
 
 CondVar::~CondVar() { PthreadCall("destroy cv", pthread_cond_destroy(&cv_)); }
@@ -137,19 +130,6 @@ void RWMutex::ReadUnlock() { PthreadCall("read unlock", pthread_rwlock_unlock(&m
 
 void RWMutex::WriteUnlock() { PthreadCall("write unlock", pthread_rwlock_unlock(&mu_)); }
 
-int PhysicalCoreID() {
-#if defined(__i386__) || defined(__x86_64__)
-  // if you ever find that this function is hot on Linux, you can go from
-  // ~200 nanos to ~20 nanos by adding the machinery to use __vdso_getcpu
-  unsigned eax, ebx = 0, ecx, edx;
-  __get_cpuid(1, &eax, &ebx, &ecx, &edx);
-  return ebx >> 24;
-#else
-  // getcpu or sched_getcpu could work here
-  return -1;
-#endif
-}
-
 void InitOnce(OnceType* once, void (*initializer)()) {
   PthreadCall("once", pthread_once(once, initializer));
 }
@@ -158,21 +138,6 @@ void Crash(const std::string& srcfile, int srcline) {
   fprintf(stdout, "Crashing at %s:%d\n", srcfile.c_str(), srcline);
   fflush(stdout);
   kill(getpid(), SIGTERM);
-}
-
-int GetMaxOpenFiles() {
-#if defined(RLIMIT_NOFILE)
-  struct rlimit no_files_limit;
-  if (getrlimit(RLIMIT_NOFILE, &no_files_limit) != 0) {
-    return -1;
-  }
-  // protect against overflow
-  if (no_files_limit.rlim_cur >= std::numeric_limits<int>::max()) {
-    return std::numeric_limits<int>::max();
-  }
-  return static_cast<int>(no_files_limit.rlim_cur);
-#endif
-  return -1;
 }
 
 }  // namespace port

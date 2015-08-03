@@ -224,6 +224,12 @@ TEST_F(AutoRollLoggerTest, CreateLoggerFromOptions) {
   ASSERT_OK(CreateLoggerFromOptions(kTestDir, options, &logger));
   ASSERT_TRUE(dynamic_cast<PosixLogger*>(logger.get()));
 
+#if defined(ROCKSDB_PLATFORM_NVM)
+    ASSERT_TRUE(dynamic_cast<NVMLogger*>(logger.get()));
+#else
+    ASSERT_TRUE(dynamic_cast<PosixLogger*>(logger.get()));
+#endif
+
   // Only roll by size
   InitTestDb();
   options.max_log_file_size = 1024;

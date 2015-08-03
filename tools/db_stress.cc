@@ -87,9 +87,8 @@ DEFINE_int64(max_key, 1 * KB* KB,
 
 DEFINE_int32(column_families, 10, "Number of column families");
 
-// TODO(noetzli) Add support for single deletes
 DEFINE_bool(test_batches_snapshots, false,
-            "If set, the test uses MultiGet(), MultiPut() and MultiDelete()"
+            "If set, the test uses MultiGet(), Multiut() and MultiDelete()"
             " which read/write/delete multiple keys in a batch. In this mode,"
             " we do not verify db content by comparing the content with the "
             "pre-allocated array. Instead, we do partial verification inside"
@@ -195,7 +194,7 @@ DEFINE_int32(compaction_thread_pool_adjust_interval, 0,
              "size. Don't change it periodically if the value is 0.");
 
 DEFINE_int32(compaction_thread_pool_variations, 2,
-             "Range of background thread pool size variations when adjusted "
+             "Range of bakground thread pool size variations when adjusted "
              "periodically.");
 
 DEFINE_int32(max_background_flushes, rocksdb::Options().max_background_flushes,
@@ -296,7 +295,7 @@ DEFINE_int32(target_file_size_base, 64 * KB,
              "Target level-1 file size for compaction");
 
 DEFINE_int32(target_file_size_multiplier, 1,
-             "A multiplier to compute target level-N file size (N >= 2)");
+             "A multiplier to compute targe level-N file size (N >= 2)");
 
 DEFINE_uint64(max_bytes_for_level_base, 256 * KB, "Max bytes for level-1");
 
@@ -329,7 +328,7 @@ static const bool FLAGS_prefixpercent_dummy __attribute__((unused)) =
     RegisterFlagValidator(&FLAGS_prefixpercent, &ValidateInt32Percent);
 
 DEFINE_int32(writepercent, 45,
-             "Ratio of writes to total workload (expressed as a percentage)");
+             " Ratio of deletes to total workload (expressed as a percentage)");
 static const bool FLAGS_writepercent_dummy __attribute__((unused)) =
     RegisterFlagValidator(&FLAGS_writepercent, &ValidateInt32Percent);
 
@@ -1600,7 +1599,7 @@ class StressTest {
           if (!s.ok()) {
             fprintf(stderr, "dropping column family error: %s\n",
                 s.ToString().c_str());
-            std::terminate();
+	    goto end;
           }
           s = db_->CreateColumnFamily(ColumnFamilyOptions(options_), new_name,
                                       &column_families_[cf]);
@@ -1609,7 +1608,7 @@ class StressTest {
           if (!s.ok()) {
             fprintf(stderr, "creating column family error: %s\n",
                 s.ToString().c_str());
-            std::terminate();
+	    goto end;
           }
           thread->shared->UnlockColumnFamily(cf);
         }
@@ -1760,7 +1759,7 @@ class StressTest {
           }
           if (!s.ok()) {
             fprintf(stderr, "put or merge error: %s\n", s.ToString().c_str());
-            std::terminate();
+	    goto end;
           }
           thread->stats.AddBytesForWrites(1, sz);
         } else {
@@ -1815,7 +1814,7 @@ class StressTest {
       }
       thread->stats.FinishedSingleOp();
     }
-
+end:
     thread->stats.Stop();
   }
 

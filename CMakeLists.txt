@@ -329,6 +329,8 @@ set(APPS
         table/table_reader_bench.cc
         tools/db_stress.cc
         tools/write_stress.cc
+        tools/db_durability.cc
+        tools/db_crash_test.cc
         tools/db_repl_stress.cc
         tools/ldb.cc
         tools/sst_dump.cc

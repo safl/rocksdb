@@ -6,6 +6,10 @@
 // Copyright (c) 2011 The LevelDB Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
+#ifdef ROCKSDB_PLATFORM_POSIX
+
+#include <deque>
+#include <set>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -28,6 +32,19 @@
 #include <sys/types.h>
 #include <time.h>
 #include <algorithm>
+#include "rocksdb/env.h"
+#include "rocksdb/slice.h"
+#include "port/port.h"
+#include "util/coding.h"
+#include "util/logging.h"
+#include "util/logger.h"
+#include "util/random.h"
+#include "util/iostats_context_imp.h"
+#include "util/string_util.h"
+#include "util/sync_point.h"
+#include "util/thread_status_updater.h"
+#include "util/thread_status_util.h"
+
 // Get nano time includes
 #if defined(OS_LINUX) || defined(OS_FREEBSD)
 #elif defined(__MACH__)
@@ -856,3 +873,5 @@ Env* Env::Default() {
 }
 
 }  // namespace rocksdb
+
+#endif

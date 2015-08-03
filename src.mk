@@ -56,6 +56,7 @@ LIB_SOURCES =                                                   \
   memtable/vectorrep.cc                                         \
   port/stack_trace.cc                                           \
   port/port_posix.cc                                            \
+  port/port_nvm.cc                                              \
   table/adaptive_table_factory.cc                               \
   table/block_based_filter_block.cc                             \
   table/block_based_table_builder.cc                            \
@@ -99,6 +100,11 @@ LIB_SOURCES =                                                   \
   util/env_chroot.cc                                            \
   util/env_hdfs.cc                                              \
   util/env_posix.cc                                             \
+  util/env_nvm.cc                                               \
+  util/nvm.cc                                                   \
+  util/nvm_files.cc                                             \
+  util/nvm_directory.cc                                         \
+  util/nvm_threading.cc                                         \
   util/file_util.cc                                             \
   util/file_reader_writer.cc                                    \
   util/filter_policy.cc                                         \
@@ -217,6 +223,8 @@ MAIN_SOURCES =                                                    \
   db/comparator_db_test.cc                                              \
   db/corruption_test.cc                                                 \
   db/cuckoo_table_db_test.cc                                            \
+  db/db_bench.cc                                                        \
+  db/nvm_bench.cc                                                       \
   db/dbformat_test.cc                                                   \
   db/db_iter_test.cc                                                    \
   db/db_test.cc                                                         \
@@ -274,6 +282,12 @@ MAIN_SOURCES =                                                    \
   tools/ldb_cmd_test.cc                                                 \
   tools/reduce_levels_test.cc                                           \
   tools/sst_dump_test.cc                                                \
+  unit_tests/nvm_file_manager_test.cc                                   \
+  unit_tests/nvm_ftl_save_test.cc                                       \
+  unit_tests/nvm_gc_tests.cc                                            \
+  unit_tests/nvm_rw_tests.cc                                            \
+  unit_tests/nvm_sequential_file_test.cc                                \
+  unit_tests/nvm_random_access_file_test.cc                             \
   util/arena_test.cc                                                    \
   util/autovector_test.cc                                               \
   util/bloom_test.cc                                                    \
