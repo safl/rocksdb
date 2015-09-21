@@ -2331,6 +2331,27 @@ Status VersionSet::LogAndApply(ColumnFamilyData* column_family_data,
       if (!s.ok()) {
         Log(InfoLogLevel::ERROR_LEVEL, db_options_->info_log,
             "MANIFEST write: %s\n", s.ToString().c_str());
+        bool all_records_in = true;
+        for (auto& e : batch_edits) {
+          std::string record;
+          if (!e->EncodeTo(&record, env_)) {
+            s = Status::Corruption(
+                "Unable to Encode VersionEdit:" + e->DebugString(true));
+            all_records_in = false;
+            break;
+          }
+          if (!ManifestContains(pending_manifest_file_number_, record)) {
+            all_records_in = false;
+            break;
+          }
+        }
+        if (all_records_in) {
+          Log(InfoLogLevel::WARN_LEVEL, db_options_->info_log,
+              "MANIFEST contains log record despite error; advancing to new "
+              "version to prevent mismatch between in-memory and logged state"
+              " If paranoid is set, then the db is now in readonly mode.");
+          s = Status::OK();
+        }
       }
     }
 
@@ -3155,7 +3176,7 @@ Status VersionSet::WriteSnapshot(log::Writer* log) {
       edit.SetComparatorName(
           cfd->internal_comparator().user_comparator()->Name());
       std::string record;
-      if (!edit.EncodeTo(&record)) {
+      if (!edit.EncodeTo(&record, env_)) {
         return Status::Corruption(
             "Unable to Encode VersionEdit:" + edit.DebugString(true));
       }
@@ -3181,7 +3202,7 @@ Status VersionSet::WriteSnapshot(log::Writer* log) {
       }
       edit.SetLogNumber(cfd->GetLogNumber());
       std::string record;
-      if (!edit.EncodeTo(&record)) {
+      if (!edit.EncodeTo(&record, env_)) {
         return Status::Corruption(
             "Unable to Encode VersionEdit:" + edit.DebugString(true));
       }
