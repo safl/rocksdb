@@ -37,6 +37,27 @@
 
 namespace rocksdb {
 
+void Env::EncodePrivateMetadata(std::string* priv, void* metadata) {}
+void* Env::DecodePrivateMetadata(Slice* input) { return nullptr; }
+void Env::FreePrivateMetadata(void* metadata) {}
+
+std::string GetWindowsErrSz(DWORD err) {
+  LPSTR lpMsgBuf;
+  FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                     FORMAT_MESSAGE_IGNORE_INSERTS,
+                 NULL, err,
+                 0,  // Default language
+                 reinterpret_cast<LPSTR>(&lpMsgBuf), 0, NULL);
+
+  std::string Err = lpMsgBuf;
+  LocalFree(lpMsgBuf);
+  return Err;
+}
+
+namespace {
+
+const size_t c_OneMB = (1 << 20);
+
 ThreadStatusUpdater* CreateThreadStatusUpdater() {
   return new ThreadStatusUpdater();
 }
