@@ -3976,6 +3976,7 @@ std::vector<Status> DBImpl::MultiGet(
 }
 
 #ifndef ROCKSDB_LITE
+/*
 Status DBImpl::AddFile(ColumnFamilyHandle* column_family,
                        const std::string& file_path, bool move_file) {
   Status status;
@@ -4055,7 +4056,9 @@ Status DBImpl::AddFile(ColumnFamilyHandle* column_family,
 
   return AddFile(column_family, &file_info, move_file);
 }
+*/
 
+/*
 Status DBImpl::AddFile(ColumnFamilyHandle* column_family,
                        const ExternalSstFileInfo* file_info, bool move_file) {
   Status status;
@@ -4189,6 +4192,7 @@ Status DBImpl::AddFile(ColumnFamilyHandle* column_family,
   }
   return status;
 }
+*/
 #endif  // ROCKSDB_LITE
 
 Status DBImpl::CreateColumnFamily(const ColumnFamilyOptions& cf_options,

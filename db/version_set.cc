@@ -2340,10 +2340,12 @@ Status VersionSet::LogAndApply(ColumnFamilyData* column_family_data,
             all_records_in = false;
             break;
           }
+          /*
           if (!ManifestContains(pending_manifest_file_number_, record)) {
             all_records_in = false;
             break;
           }
+          */
         }
         if (all_records_in) {
           Log(InfoLogLevel::WARN_LEVEL, db_options_->info_log,
